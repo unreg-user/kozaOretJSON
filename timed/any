@@ -1,0 +1,50 @@
+
+
+	public static class NodeR<R extends JsonElement>{
+		private final R object;
+		private final RandomGrouper<?> grouper;
+		private final int pos;
+		@NotNull
+		private final Type type;
+
+		private NodeR(R object, RandomGrouper<?> grouper, int pos, @NotNull Type type){
+			this.object=object;
+			this.grouper=grouper;
+			this.pos=pos;
+			this.type=type;
+		}
+
+		public static <R extends JsonElement> NodeR<R> of(R object, int pos){
+			return new NodeR<>(object, null, pos, Type.CONSTANT);
+		}
+
+		public static <R extends JsonElement> NodeR<R> ofRand(R object, int pos){
+			return new NodeR<>(object, null, pos, Type.RANDOM);
+		}
+
+		public static <R extends JsonElement> NodeR<R> ofRand(R object, int pos, RandomGrouper<? extends JsonElement> grouper){
+			return new NodeR<>(object, grouper, pos, Type.DEEP_RANDOM);
+		}
+
+		private enum Type{
+			CONSTANT,
+			RANDOM,
+			DEEP_RANDOM;
+		}
+	}
+
+	protected interface MapNoded<T, Y>{
+		T key();
+		Y value();
+	}
+	protected interface MapNodedUnimutable<T, Y> extends MapNoded<T, Y>{
+		void setKey(T key);
+		void setValue(Y value);
+	}
+
+	public record MapNode<T, Y>(T key, Y value) implements MapNoded<T, Y>{}
+	public record MapNodePos<T, Y>(T key, Y value, int pos) implements MapNoded<T, Y>{
+		public MapNode<T, Y> toUnpos(){
+			return new MapNode<>(key, value);
+		}
+	}
