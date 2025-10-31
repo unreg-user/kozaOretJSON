@@ -25,3 +25,8 @@ java {
 test {
     useJUnitPlatform()
 }
+
+compileJava {
+    sourceCompatibility = '21'
+    targetCompatibility = '21'
+}
