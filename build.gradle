@@ -20,13 +20,11 @@ dependencies {
 
 java {
     withSourcesJar()
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 test {
     useJUnitPlatform()
-}
-
-compileJava {
-    sourceCompatibility = '21'
-    targetCompatibility = '21'
 }
