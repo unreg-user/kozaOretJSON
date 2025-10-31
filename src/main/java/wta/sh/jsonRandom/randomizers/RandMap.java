@@ -36,43 +36,39 @@ public class RandMap<T, Y> extends Randomizer<LinkedHashMap<T, Y>> {
 		}
 	}
 
-	public void randomize(MapGrouper<T, Y> grouper) {
+	public <U> void randomize(BiFunction<T, Y, MapNodePos<T, Y, U>> grouper) {
 		// 1. Сгруппировать ключи по pos
-		Map<Integer, ArrayList<MapNodePos<T, Y>>> groups = new HashMap<>();
-		ArrayList<Integer> posesUnknot=new ArrayList<>();
-		for (T key : object.keySet()) {
-			Y value = object.get(key);
-			MapNodePos<T, Y> node = grouper.group(key, value);
-			int pos = node.pos();
+		Map<U, ArrayList<MapNodePos<T, Y, U>>> groups = new HashMap<>();
+		ArrayList<U> posesUnknot=new ArrayList<>();
+		for (T keyI : object.keySet()) {
+			Y valueI = object.get(keyI);
+			MapNodePos<T, Y, U> nodeI = grouper.apply(keyI, valueI);
+			U pos = nodeI.pos;
 			posesUnknot.add(pos);
-			groups.computeIfAbsent(pos, ArrayList::new).add(node);
+			groups.computeIfAbsent(pos, key -> new ArrayList<>()).add(nodeI);
 		}
-		Map<Integer, Iterator<MapNodePos<T, Y>>> iterators = new HashMap<>();
-		for (Map.Entry<Integer, ArrayList<MapNodePos<T, Y>>> entryI : groups.entrySet()){
-			ArrayList<MapNodePos<T, Y>> valueI=entryI.getValue();
+		Map<U, Iterator<MapNodePos<T, Y, U>>> iterators = new HashMap<>();
+		for (Map.Entry<U, ArrayList<MapNodePos<T, Y, U>>> entryI : groups.entrySet()){
+			ArrayList<MapNodePos<T, Y, U>> valueI=entryI.getValue();
 			shuffle(valueI, random);
 			iterators.put(entryI.getKey(), valueI.iterator());
 		}
 
 		// 2. Возвращаем
 		LinkedHashMap<T, Y> ret=new LinkedHashMap<>();
-		for (Integer i : posesUnknot){
-			MapNodePos<T, Y> nodeI=iterators.get(i).next();
-			ret.put(nodeI.key(), nodeI.value());
+		for (U i : posesUnknot){
+			MapNodePos<T, Y, U> nodeI=iterators.get(i).next();
+			ret.put(nodeI.key, nodeI.value);
 		}
 		object=ret;
 	}
 
-	public interface MapGrouper<T, Y>{
-		MapNodePos<T, Y> group(T key, Y object);
-	}
-
 	public record MapNode<T, Y>(T key, Y value){}
 	/**unimmutable! (copy, to use next)*/
-	public static class MapNodePos<T, Y>{
+	public static class MapNodePos<T, Y, U>{
 		T key;
 		Y value;
-		int pos;
+		U pos;
 
 		public T key() {return key;}
 		public Y value() {return value;}
@@ -80,15 +76,15 @@ public class RandMap<T, Y> extends Randomizer<LinkedHashMap<T, Y>> {
 		private void setKey(T key) {this.key = key;}
 		private void setValue(Y value) {this.value = value;}
 
-		public int pos() {return pos;}
+		public U pos() {return pos;}
 
-		public MapNodePos(T key, Y value, int pos){
+		public MapNodePos(T key, Y value, U pos){
 			this.key=key;
 			this.value=value;
 			this.pos=pos;
 		}
 
-		public MapNodePos<T, Y> copy(){
+		public MapNodePos<T, Y, U> copy(){
 			return new MapNodePos<>(key, value, pos);
 		}
 	}
@@ -105,14 +101,14 @@ public class RandMap<T, Y> extends Randomizer<LinkedHashMap<T, Y>> {
 		return ret;
 	}
 
-	protected static <T, Y> void shuffle(ArrayList<MapNodePos<T, Y>> nodes, Random random) {
+	protected static <T, Y> void shuffle(ArrayList<MapNodePos<T, Y, ?>> nodes, Random random) {
 		int n = nodes.size();
 		if (n <= 1) return;
 
 		for (int i = n - 1; i > 0; i--) {
 			int j = random.nextInt(i + 1);
-			Y temp = nodes.get(i).value();
-			nodes.get(i).setValue(nodes.get(j).value());
+			Y temp = nodes.get(i).value;
+			nodes.get(i).setValue(nodes.get(j).value);
 			nodes.get(j).setValue(temp);
 		}
 	}
