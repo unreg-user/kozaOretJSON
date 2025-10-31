@@ -1,8 +1,9 @@
 plugins {
-    id 'java'
+    id 'java-library'
+    id 'maven-publish'
 }
 
-group = 'wta.sh.jsonRandom'
+group = 'com.github.unreg-user'
 version = '1.0-SNAPSHOT'
 
 repositories {
@@ -10,11 +11,15 @@ repositories {
 }
 
 dependencies {
-    testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'org.jetbrains:annotations:24.1.0'
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+java {
+    withSourcesJar()
 }
 
 test {
